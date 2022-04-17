@@ -1,3 +1,5 @@
+import sqlite3
+
 
 class User():
     def __init__(self, username, password):
@@ -23,15 +25,37 @@ class Users():
         # TODO:
         pass
 
-    def add_user(self, username, password):
-        # TODO:
-        pass
+    def add_user(conn, user):
+        sql = '''
+            INSERT INTO users(username, password)
+            VALUES(?,?)
+        '''
+        cur = conn.cursor()
+        cur.execute(sql, user)
+        conn.commit()
+        return cur.lastrowid
 
-    def remove_user(self, username):
-        # TODO:
-        pass
+    def remove_user(username):
+        conn = sqlite3.connect('user.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            DELETE FROM users
+            WHERE username = ?
+        
+        ''', [username])
+        print(f'Usuário {username} deletado com sucesso')
+        conn.commit()
+        conn.close()
 
-    def list_all(self):
-        # TODO:
-        pass
+    def list_all():
+        conn = sqlite3.connect('user.db')
+        cursor = conn.cursor()
+
+        cursor.execute('''
+        SELECT * FROM users;  
+        ''')
+
+        for linha in cursor.fetchall():
+            print(linha)
+        conn.close()
 
