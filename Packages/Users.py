@@ -1,13 +1,12 @@
 import sqlite3
 
-
 class User():
-    def __init__(self, username, password):
+    def __init__(self, username: str, password: str):
         if len(username) == 0:
             raise ValueError('No username provided')
         if len(username) > 12:
             raise ValueError('Username is too long')
-        if not any(c.isdigit() for c in username):
+        if any([c.isdigit() for c in username]):
             raise ValueError('Username contains numbers')
 
         if len(password) >= 20:
@@ -19,43 +18,105 @@ class User():
 
         self.username = username
         self.password = password
+        self.id = 0
 
-class Users():
-    def __init__(self):
-        # TODO:
-        pass
+    def __str__(self):
+        return "User [id: {}; username: {}; password: {}]".format(self.id, self.username, self.password)
 
-    def add_user(conn, user):
+    def to_tuple(self):
+        return (self.username, self.password)
+
+    @staticmethod
+    def from_tuple(id: int, username: str, password: str):
+        user = User(username, password)
+        user.id = id
+        return user
+
+
+class UserRepository:
+    def __init__(self, conn: sqlite3.Connection):
+        self.__conn = conn
+        self.__init_table()
+
+    def __del__(self):
+        self.__conn.close()
+
+    def __init_table(self):
+        cur = self.__conn.cursor()
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER UNIQUE NOT NULL PRIMARY KEY AUTOINCREMENT,
+                username VARCHAR(12) UNIQUE NOT NULL,
+                password VARCHAR(20) NOT NULL
+            );
+        ''')
+
+    def add_user(self, user: User):
+        # TODO: check if user already exists before trying to insert
         sql = '''
             INSERT INTO users(username, password)
             VALUES(?,?)
         '''
-        cur = conn.cursor()
-        cur.execute(sql, user)
-        conn.commit()
-        return cur.lastrowid
 
-    def remove_user(username):
-        conn = sqlite3.connect('user.db')
-        cursor = conn.cursor()
-        cursor.execute('''
+        try:
+            cur = self.__conn.cursor()
+            cur.execute(sql, user.to_tuple())
+            self.__conn.commit()
+            id = cur.lastrowid
+            user.id = id
+            return id
+        except sqlite3.DatabaseError as err:
+            print(err)
+
+    def __get_user_helper(self, parameter, argument):
+        sql = f'''
+            SELECT * FROM users
+            WHERE {parameter} = ?
+        '''
+    
+        cur = self.__conn.cursor()
+        cur.execute(sql, [argument])
+        res = cur.fetchone()
+
+
+        if res == None:
+            return None
+        else:
+            return User.from_tuple(*res)
+
+    def get_user_by_id(self, id: int) -> User | None:
+        return self.__get_user_helper('id', id)
+
+    def get_user_by_username(self, username: str) -> User | None:
+        return self.__get_user_helper('username', username)
+
+    def __remove_user_helper(self, parameter, argument):
+        # TODO: check if user exists before removing??
+        sql = f'''
             DELETE FROM users
-            WHERE username = ?
-        
-        ''', [username])
-        print(f'Usuário {username} deletado com sucesso')
-        conn.commit()
-        conn.close()
+            WHERE {parameter} = ?
+        '''
 
-    def list_all():
-        conn = sqlite3.connect('user.db')
-        cursor = conn.cursor()
+        cur = self.__conn.cursor()
+        cur.execute(sql, [argument])
+        print(f'Usuário com {parameter}: {argument} deletado com sucesso')
+        self.__conn.commit()
+        
+    def remove_user_by_id(self, id: int):
+        return self.__remove_user_helper('id', id)
+
+    def remove_user_by_username(self, username: str):
+        return self.__remove_user_helper('username', username)
+
+    def get_all(self) -> list[User]:
+        self.__conn = sqlite3.connect('user.db')
+        cursor = self.__conn.cursor()
 
         cursor.execute('''
         SELECT * FROM users;  
         ''')
 
-        for linha in cursor.fetchall():
-            print(linha)
-        conn.close()
+        result = cursor.fetchall()
+        return [User.from_tuple(*t) for t in result]
+
 

@@ -1,12 +1,41 @@
 import sqlite3
-from Packages.Users import *
-"""
+from Packages import Users
+
 conn = sqlite3.connect('user.db')
 with conn:
-    user = ('addtest', 'addpasstest')
-    Users.add_user(conn, user)
-#
-"""
-Users.list_all()
-#Users.remove_user('addtest')
+    user_repo = Users.UserRepository(conn)
+
+    # Clearing for testing
+
+    users = user_repo.get_all()
+
+    for user in users:
+        user_repo.remove_user_by_id(user.id)
+
+    # Tests
+
+    user1 = Users.User('addtest', 'addpasstest22')
+    user2 = Users.User('addtesta', 'addpasstest22')
+
+    user_repo.add_user(user1)
+    user_repo.add_user(user2)
+
+    print('Print all: ')
+    users = user_repo.get_all()
+    for user in users:
+        print('\t', user)
+
+    print('Print by id, username: ')
+    print('\t', user_repo.get_user_by_id(user1.id))
+    print('\t', user_repo.get_user_by_username(user1.username))
+
+    print('Print by id, username: ')
+    print('\t', user_repo.get_user_by_id(user2.id))
+    print('\t', user_repo.get_user_by_username(user2.username))
+
+    print('Should be None: ', user_repo.get_user_by_username('ohno')) # Returns 'None'
+
+    print('Print all: ')
+    for user in users:
+        print('\t', user)
     
