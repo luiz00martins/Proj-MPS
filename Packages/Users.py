@@ -1,21 +1,8 @@
 import sqlite3
 
+
 class User():
     def __init__(self, username: str, password: str):
-        if len(username) == 0:
-            raise ValueError('No username provided')
-        if len(username) > 12:
-            raise ValueError('Username is too long')
-        if any([c.isdigit() for c in username]):
-            raise ValueError('Username contains numbers')
-
-        if len(password) >= 20:
-            raise ValueError('Password is too long')
-        if len(password) <= 8:
-            raise ValueError('Password is too long')
-        if len([x for x in password if x.isdigit()]) < 2:
-            raise ValueError('Password must have at least 2 numbers')
-
         self.username = username
         self.password = password
         self.id = 0
@@ -31,6 +18,31 @@ class User():
         user = User(username, password)
         user.id = id
         return user
+
+class UserValidationException(Exception):
+    def __init__(self, reason):
+        self.reason = reason
+
+    def __str__(self):
+        return f"user validation failed, reason: {self.reason}"
+
+
+class UserDefaultValidation():
+
+    def validate(self, user: User):
+        if len(user.username) == 0:
+            raise UserValidationException('No username provided')
+        if len(user.username) > 12:
+            raise UserValidationException('Username is too long')
+        if any([c.isdigit() for c in user.username]):
+            raise UserValidationException('Username contains numbers')
+
+        if len(user.password) >= 20:
+            raise UserValidationException('Password is too long')
+        if len(user.password) <= 8:
+            raise UserValidationException('Password is too long')
+        if len([x for x in user.password if x.isdigit()]) < 2:
+            raise UserValidationException('Password must have at least 2 numbers')
 
 
 class UserRepository:
@@ -51,12 +63,14 @@ class UserRepository:
             );
         ''')
 
-    def add_user(self, user: User):
+    def add_user(self, user: User, validation):
         # TODO: check if user already exists before trying to insert
         sql = '''
             INSERT INTO users(username, password)
             VALUES(?,?)
         '''
+
+        validation.validate(user)
 
         try:
             cur = self.__conn.cursor()
