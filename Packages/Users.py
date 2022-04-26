@@ -40,7 +40,7 @@ class UserDefaultValidation():
         if len(user.password) >= 20:
             raise UserValidationException('Password is too long')
         if len(user.password) <= 8:
-            raise UserValidationException('Password is too long')
+            raise UserValidationException('Password is too short')
         if len([x for x in user.password if x.isdigit()]) < 2:
             raise UserValidationException('Password must have at least 2 numbers')
 
