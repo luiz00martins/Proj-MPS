@@ -21,7 +21,7 @@ with conn:
     validation = Users.UserDefaultValidation()
 
     user_repo.add_user(user1, validation)
-    user_repo.add_user(user2, validation)
+    user2_id = user_repo.add_user(user2, validation)
 
     print('Print all: ')
     users = user_repo.get_all()
@@ -43,7 +43,18 @@ with conn:
     except Users.UserValidationException as err:
         print(err)
 
+    user4 = Users.User('usersab', 'passuser32')
+    user_repo.add_user(user4, validation)
+
     print('Print all: ')
+    users = user_repo.get_all()
+    for user in users:
+        print('\t', user)
+    
+    user_repo.remove_user_by_id(user4.id)
+
+    print('Print all: ')
+    users = user_repo.get_all()
     for user in users:
         print('\t', user)
     
