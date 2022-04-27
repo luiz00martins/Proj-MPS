@@ -65,14 +65,13 @@ class UserRepository:
 
     def add_user(self, user: User, validation):
         # TODO: check if user already exists before trying to insert
-        sql = '''
-            INSERT INTO users(username, password)
-            VALUES(?,?)
-        '''
-
-        validation.validate(user)
-
         try:
+            sql = '''
+                INSERT INTO users(username, password)
+                VALUES(?,?)
+                '''
+
+            validation.validate(user)
             cur = self.__conn.cursor()
             cur.execute(sql, user.to_tuple())
             self.__conn.commit()
@@ -80,7 +79,8 @@ class UserRepository:
             user.id = id
             return id
         except sqlite3.DatabaseError as err:
-            print(err)
+            print('O username digitado ja existe em nosso banco de dados!'.upper())
+            print('Error description: ', err)
 
     def __get_user_helper(self, parameter, argument):
         sql = f'''
@@ -105,17 +105,25 @@ class UserRepository:
         return self.__get_user_helper('username', username)
 
     def __remove_user_helper(self, parameter, argument):
-        # TODO: check if user exists before removing??
-        sql = f'''
-            DELETE FROM users
-            WHERE {parameter} = ?
-        '''
+        try: 
+            sql = f'''
+                DELETE FROM users
+                WHERE {parameter} = ?
+            '''
 
-        cur = self.__conn.cursor()
-        cur.execute(sql, [argument])
-        print(f'Usuário com {parameter}: {argument} deletado com sucesso')
-        self.__conn.commit()
-        
+            cur = self.__conn.cursor()
+            cur.execute(sql, [argument])
+            
+            if(cur.rowcount == 0):
+                print(f'Usuario {argument} nao existe')
+                return
+
+            print(f'Usuário com {parameter}: {argument} deletado com sucesso')
+            self.__conn.commit()
+            self.__conn.close()
+        except sqlite3.DataError as err:
+            print(err.__traceback__)
+
     def remove_user_by_id(self, id: int):
         return self.__remove_user_helper('id', id)
 
