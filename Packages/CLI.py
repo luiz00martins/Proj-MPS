@@ -1,6 +1,6 @@
 import argparse
 import sqlite3
-from .Users import UserRepository, User, UserDefaultValidation
+from .Users import UserRepository, User, UserDefaultValidation, UserValidationException
 
 class UsersCLI():
     def __init__(self, conn: sqlite3.Connection):
@@ -24,7 +24,10 @@ class UsersCLI():
 
         user = User(username, password)
 
-        self.users.add_user(user, UserDefaultValidation())
+        try:
+            self.users.add_user(user, UserDefaultValidation())
+        except UserValidationException as e:
+            print("Falha ao adicionar usuario: " + e.reason)
 
     def _remove(self):
         args = self.parser.parse_args()
