@@ -6,17 +6,19 @@ class User():
         self.username = username
         self.password = password
         self.id = 0
+        self.__institute_fk = 0
 
     def __str__(self):
-        return "User [id: {}; username: {}; password: {}]".format(self.id, self.username, self.password)
-
+        out_str = "User [id: {}; username: {}; password: {}]"
+        return out_str.format( self.id, self.username, self.password)
     def to_tuple(self):
-        return (self.username, self.password)
+        return (self.username, self.password, self.__institute_fk)
 
     @staticmethod
-    def from_tuple(id: int, username: str, password: str):
+    def from_tuple(id: int, username: str, password: str, institute_fk: int):
         user = User(username, password)
         user.id = id
+        user.__institute_fk = institute_fk
         return user
 
 class UserValidationException(Exception):
@@ -48,27 +50,28 @@ class UserDefaultValidation():
 class UserRepository:
     def __init__(self, conn: sqlite3.Connection):
         self.__conn = conn
-        self.__init_table()
 
     def __del__(self):
         self.__conn.close()
 
-    def __init_table(self):
-        cur = self.__conn.cursor()
-        cur.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER UNIQUE NOT NULL PRIMARY KEY AUTOINCREMENT,
-                username VARCHAR(12) UNIQUE NOT NULL,
-                password VARCHAR(20) NOT NULL
-            );
-        ''')
+    # def __init_table(self):
+    #     cur = self.__conn.cursor()
+    #     cur.execute('''
+    #         CREATE TABLE IF NOT EXISTS users (
+    #             id INTEGER UNIQUE NOT NULL PRIMARY KEY AUTOINCREMENT,
+    #             username VARCHAR(12) UNIQUE NOT NULL,
+    #             password VARCHAR(20) NOT NULL,
+    #             institute_fk INTEGER,
+    #             FOREIGN KEY(institute_fk) REFERENCES institute(id)
+    #         );
+    #     ''')
 
     def add_user(self, user: User, validation):
         # TODO: check if user already exists before trying to insert
         try:
             sql = '''
-                INSERT INTO users(username, password)
-                VALUES(?,?)
+                INSERT INTO users(username, password, institute_fk)
+                VALUES(?,?,?)
                 '''
 
             validation.validate(user)
@@ -120,7 +123,7 @@ class UserRepository:
 
             print(f'Usuário com {parameter}: {argument} deletado com sucesso')
             self.__conn.commit()
-            self.__conn.close()
+            # self.__conn.close()
         except sqlite3.DataError as err:
             print(err.__traceback__)
 

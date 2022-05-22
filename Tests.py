@@ -1,8 +1,18 @@
+from os import wait
 import sqlite3
-from Packages import Users
+from Packages import Users, Institute, Turma
+
+def init_db(conn: sqlite3.Connection):
+    with open('db_definition.sql', 'r') as f:
+        contents = f.read()
+        cur = conn.cursor()
+        cur.executescript(contents)
+    
 
 conn = sqlite3.connect('user.db')
 with conn:
+    init_db(conn)
+
     user_repo = Users.UserRepository(conn)
 
     # Clearing for testing
@@ -57,5 +67,30 @@ with conn:
     users = user_repo.get_all()
     for user in users:
         print('\t', user)
-    
+
+    institute_repo = Institute.InsituteRepository(conn)
+
+    institute_repo.add_institute(Institute.Institute("UFPB"))
+
+    for i in institute_repo.get_all():
+        print('\t', i)
+
+    ufpb = institute_repo.get_institute("UFPB")
+    print('\t', ufpb)
+
+    for i in institute_repo.get_all():
+        institute_repo.remove_institute_by_name(i.name)
+
+
+    turma_repo = Turma.TurmaRepository(conn) 
+
+    turma_repo.add_turma(Turma.Turma("CS124"))
+
+    for t in turma_repo.get_all():
+        print('\t', t)
+
+    for t in turma_repo.get_all():
+        turma_repo.remove_turma_by_code(t.code)
+
+
 
