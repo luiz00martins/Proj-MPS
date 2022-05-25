@@ -80,7 +80,7 @@ class TreeSet(object):
         return self._treeset.pop(index)
 
     def __str__(self):
-        return str(self._treeset)
+        return str(', '.join([str(e) for e in self._treeset]))
 
     def __eq__(self, target):
         if isinstance(target, TreeSet):
@@ -96,11 +96,3 @@ class TreeSet(object):
             return e == self._treeset[bisect.bisect_left(self._treeset, e)]
         except:
             return False
-
-if __name__ == '__main__':
-    ts = TreeSet([3,7,7,1,3])
-    print(ts.floor(4))
-    print(ts.ceiling(4))
-    print(ts.floor(3))
-    print(ts.ceiling(3))
-    print(ts)

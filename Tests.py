@@ -1,7 +1,8 @@
 from os import wait
 import sqlite3
-from Packages import Users, Institute, Turma
+from Packages import Users, Institute, Turma, Treeset, Date
 
+# Testing database.
 def init_db(conn: sqlite3.Connection):
     with open('db_definition.sql', 'r') as f:
         contents = f.read()
@@ -93,4 +94,8 @@ with conn:
         turma_repo.remove_turma_by_code(t.code)
 
 
+# Testing dates and treeset.
+Date = Date.Date
+ts = Treeset.TreeSet([Date(1,5,2010),Date(1,5,2010),Date(2,5,2010),Date(2,5,2010),Date(1,5,1999)])
+print(ts)
 
