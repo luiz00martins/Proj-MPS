@@ -84,7 +84,7 @@ class TreeSet(object):
 
     def __eq__(self, target):
         if isinstance(target, TreeSet):
-            return self._treeset == target.treeset
+            return self._treeset == target._treeset
         elif isinstance(target, list):
             return self._treeset == target
 
