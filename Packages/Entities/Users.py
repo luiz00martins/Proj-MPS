@@ -1,5 +1,5 @@
 import sqlite3
-from .Date import Date
+from ..DataStructures.Date import Date
 
 class User():
     def __init__(self, username: str, password: str, birthday: Date):
@@ -51,20 +51,8 @@ class UserRepository:
     def __init__(self, conn: sqlite3.Connection):
         self.__conn = conn
 
-    def __del__(self):
-        self.__conn.close()
-
-    # def __init_table(self):
-    #     cur = self.__conn.cursor()
-    #     cur.execute('''
-    #         CREATE TABLE IF NOT EXISTS users (
-    #             id INTEGER UNIQUE NOT NULL PRIMARY KEY AUTOINCREMENT,
-    #             username VARCHAR(12) UNIQUE NOT NULL,
-    #             password VARCHAR(20) NOT NULL,
-    #             institute_fk INTEGER,
-    #             FOREIGN KEY(institute_fk) REFERENCES institute(id)
-    #         );
-    #     ''')
+    # def __del__(self):
+    #     self.__conn.close()
 
     def add_user(self, user: User, validation):
         # TODO: check if user already exists before trying to insert
@@ -123,7 +111,6 @@ class UserRepository:
 
             print(f'User with {parameter}: {argument} successfully deleted')
             self.__conn.commit()
-            # self.__conn.close()
         except sqlite3.DataError as err:
             print(err.__traceback__)
 
@@ -134,7 +121,6 @@ class UserRepository:
         return self.__remove_user_helper('username', username)
 
     def get_all(self) -> list[User]:
-        self.__conn = sqlite3.connect('user.db')
         cursor = self.__conn.cursor()
 
         cursor.execute('''

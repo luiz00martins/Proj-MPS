@@ -13,16 +13,15 @@ class Classroom():
 
     @staticmethod
     def from_tuple(code: str):
-        classroom = Classroom(code)
-        return classroom
+        return Classroom(code)
 
 
 class ClassroomRepository:
     def __init__(self, conn: sqlite3.Connection):
         self.__conn = conn
 
-    def __del__(self):
-        self.__conn.close()
+    # def __del__(self):
+    #     self.__conn.close()
 
     def add_classroom(self, classroom: Classroom):
         try:
@@ -35,17 +34,17 @@ class ClassroomRepository:
             cur.execute(sql, classroom.to_tuple())
             self.__conn.commit()
         except sqlite3.DatabaseError as err:
-            print('A classroom digitada ja existe em nosso banco de dados!'.upper())
+            print(f'Classroom {classroom.code} already in database'.upper())
             print('Error description: ', err)
 
     def get_classroom(self, code: str) -> None | Classroom:
         sql = f'''
-            SELECT * FROM users
+            SELECT code FROM classroom
             WHERE code = ?
         '''
     
         cur = self.__conn.cursor()
-        cur.execute(sql, code)
+        cur.execute(sql, (code, ))
         res = cur.fetchone()
 
         if res == None:
@@ -64,10 +63,10 @@ class ClassroomRepository:
             cur.execute(sql, [code])
             
             if(cur.rowcount == 0):
-                print(f'Classroom {code} nao existe')
+                print(f'Classroom {code} does not exist')
                 return
 
-            print(f'Classroom {code} deletado com sucesso')
+            print(f'Classroom {code} successfully deleted')
             self.__conn.commit()
         except sqlite3.DataError as err:
             print(err.__traceback__)

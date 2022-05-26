@@ -1,8 +1,12 @@
 from os import wait
 import sqlite3
-from Packages import Users, Institute, Classroom
-from Packages.Date import Date
-from Packages.Treeset import TreeSet
+from Packages.Entities import Users, Institute, Classroom
+
+from Packages.Entities.Classroom import Classroom, ClassroomRepository
+from Packages.Entities.ClassroomUser import ClassroomUser, ClassroomUserRepository, Role
+
+from Packages.DataStructures.Date import Date
+from Packages.DataStructures.Treeset import TreeSet
 
 def init_db(conn: sqlite3.Connection):
     with open('db_definition.sql', 'r') as f:
@@ -38,27 +42,35 @@ with conn:
     init_db(conn)
 
     user_repo = Users.UserRepository(conn)
+    classroom_repo = ClassroomRepository(conn) 
+    classroom_user_repo = ClassroomUserRepository(conn)
 
     # Clearing for testing
 
-    users = user_repo.get_all()
-
-    for user in users:
+    for user in user_repo.get_all():
         user_repo.remove_user_by_id(user.id)
+
+    for classroom in classroom_repo.get_all():
+        classroom_repo.remove_classroom_by_code(classroom.code)
+
+    for classroom_user in classroom_user_repo.get_all():
+        classroom_user_repo.remove_classroom_user(classroom_user.user_fk, classroom_user.classroom_fk)
 
     # Tests
 
-    user1 = Users.User('addtest', 'addpasstest22', Date(1,5,2015))
-    user2 = Users.User('addtesta', 'addpasstest22', Date(1,6,2010))
-    user3 = Users.User('addtestb', 'addpasstest22', Date(30,10,1999))
+    user1 = Users.User('student', 'addpasstest22', Date(1,5,2015))
+    user2 = Users.User('assistant', 'addpasstest22', Date(1,6,2010))
+    user3 = Users.User('teacher', 'addpasstest22', Date(30,10,1999))
+    user4 = Users.User('admin', 'addpasstest22', Date(5,7,2005))
 
     userError0 = Users.User('add1testa', 'addpasstest22', Date(2,6,1995))
 
     validation = Users.UserDefaultValidation()
 
     user_repo.add_user(user1, validation)
+    user_repo.add_user(user2, validation)
     user_repo.add_user(user3, validation)
-    user2_id = user_repo.add_user(user2, validation)
+    user_repo.add_user(user4, validation)
 
     print('Print all by birthday: ')
     users = user_repo.get_all()
@@ -109,18 +121,24 @@ with conn:
         institute_repo.remove_institute_by_name(i.name)
 
 
-    classroom_repo = Classroom.ClassroomRepository(conn) 
-
-    classroom_repo.add_classroom(Classroom.Classroom("CS124"))
+    classroom_repo.add_classroom(Classroom("CS124"))
 
     for t in classroom_repo.get_all():
         print('\t', t)
 
     for t in classroom_repo.get_all():
-        classroom_repo.remove_classroom_by_code(t.code)
+        student = ClassroomUser(user1.id, t.code, Role.student)
+        assistant = ClassroomUser(user2.id, t.code, Role.assistant)
+        teacher = ClassroomUser(user3.id, t.code, Role.teacher)
+        adiministrator = ClassroomUser(user4.id, t.code, Role.administrator)
 
+        classroom_user_repo.add_classroom_user(student)
+        classroom_user_repo.add_classroom_user(assistant)
+        classroom_user_repo.add_classroom_user(teacher)
+        classroom_user_repo.add_classroom_user(adiministrator)
 
-# Testing dates and treeset.
-ts = TreeSet([Date(1,5,2010),Date(1,5,2010),Date(2,5,2010),Date(2,5,2010),Date(1,5,1999)])
-print(ts)
+        for cu in classroom_user_repo.get_all():
+            print(f'User {cu.user_fk} is a {cu.role.name} in classroom {cu.classroom_fk}')
+
+        classroom_user_repo.add_classroom_user(student)
 

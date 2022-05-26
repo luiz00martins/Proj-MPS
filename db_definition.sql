@@ -8,10 +8,7 @@ CREATE TABLE IF NOT EXISTS classroom (
 
 CREATE TABLE IF NOT EXISTS classroom_user (
     id INTEGER UNIQUE NOT NULL PRIMARY KEY AUTOINCREMENT,
-    is_student BOOLEAN,
-    is_assistant BOOLEAN,
-    is_teacher BOOLEAN,
-    is_administrator BOOLEAN,
+    role VARCHAR(20) CHECK(role IN ('student', 'assistant', 'teacher', 'administrator')) NOT NULL,
     user_fk INTEGER NOT NULL,
     classroom_fk INTEGER NOT NULL,
     FOREIGN KEY(user_fk) REFERENCES users(id),
