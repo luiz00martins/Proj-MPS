@@ -1,6 +1,7 @@
 from os import wait
 import sqlite3
 from Packages import Users, Institute, Turma, Treeset, Date
+from Packages.Date import Date
 
 # Testing database.
 def init_db(conn: sqlite3.Connection):
@@ -25,9 +26,9 @@ with conn:
 
     # Tests
 
-    user1 = Users.User('addtest', 'addpasstest22')
-    user2 = Users.User('addtesta', 'addpasstest22')
-    user3 = Users.User('add1testa', 'addpasstest22')
+    user1 = Users.User('addtest', 'addpasstest22', Date(1,5,2010))
+    user2 = Users.User('addtesta', 'addpasstest22', Date(1,6,2010))
+    user3 = Users.User('add1testa', 'addpasstest22', Date(2,6,2010))
 
     validation = Users.UserDefaultValidation()
 
@@ -54,7 +55,7 @@ with conn:
     except Users.UserValidationException as err:
         print(err)
 
-    user4 = Users.User('usersab', 'passuser32')
+    user4 = Users.User('usersab', 'passuser32', Date(1, 10, 2001))
     user_repo.add_user(user4, validation)
 
     print('Print all: ')
@@ -95,7 +96,6 @@ with conn:
 
 
 # Testing dates and treeset.
-Date = Date.Date
 ts = Treeset.TreeSet([Date(1,5,2010),Date(1,5,2010),Date(2,5,2010),Date(2,5,2010),Date(1,5,1999)])
 print(ts)
 

@@ -11,7 +11,7 @@ class Date():
         self.year = year
 
     def __str__(self):
-        return f"Date {self.day}/{self.month}/{self.year}"
+        return f"{self.day:02d}/{self.month:02d}/{self.year:04d}"
 
     def __lt__(self, other):
         if self.year < other.year:

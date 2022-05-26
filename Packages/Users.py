@@ -1,22 +1,22 @@
 import sqlite3
-
+from .Date import Date
 
 class User():
-    def __init__(self, username: str, password: str):
+    def __init__(self, username: str, password: str, birthday: Date):
         self.username = username
         self.password = password
+        self.birthday = birthday
         self.id = 0
         self.__institute_fk = 0
 
     def __str__(self):
-        out_str = "User [id: {}; username: {}; password: {}]"
-        return out_str.format( self.id, self.username, self.password)
+        return f"User [id: {self.id}; username: {self.username}; birthday: {self.birthday}; password: {self.password}]"
     def to_tuple(self):
-        return (self.username, self.password, self.__institute_fk)
+        return (self.username, self.password, str(self.birthday), self.__institute_fk)
 
     @staticmethod
-    def from_tuple(id: int, username: str, password: str, institute_fk: int):
-        user = User(username, password)
+    def from_tuple(id: int, username: str, password: str, birthday: Date, institute_fk: int):
+        user = User(username, password, birthday)
         user.id = id
         user.__institute_fk = institute_fk
         return user
@@ -70,8 +70,8 @@ class UserRepository:
         # TODO: check if user already exists before trying to insert
         try:
             sql = '''
-                INSERT INTO users(username, password, institute_fk)
-                VALUES(?,?,?)
+                INSERT INTO users(username, password, birthday, institute_fk)
+                VALUES(?,?,?,?)
                 '''
 
             validation.validate(user)

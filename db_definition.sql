@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER UNIQUE NOT NULL PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(12) UNIQUE NOT NULL,
     password VARCHAR(20) NOT NULL,
+    birthday VARCHAR(10) NOT NULL,
     institute_fk INTEGER,
     FOREIGN KEY(institute_fk) REFERENCES institute(id)
 );
