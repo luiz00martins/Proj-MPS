@@ -82,7 +82,7 @@ class UserRepository:
             user.id = id
             return id
         except sqlite3.DatabaseError as err:
-            print('O username digitado ja existe em nosso banco de dados!'.upper())
+            print('Username already exists in the database'.upper())
             print('Error description: ', err)
 
     def __get_user_helper(self, parameter, argument):
@@ -118,10 +118,10 @@ class UserRepository:
             cur.execute(sql, [argument])
             
             if(cur.rowcount == 0):
-                print(f'Usuario {argument} nao existe')
+                print(f'User {argument} does not exist')
                 return
 
-            print(f'Usuário com {parameter}: {argument} deletado com sucesso')
+            print(f'User with {parameter}: {argument} successfully deleted')
             self.__conn.commit()
             # self.__conn.close()
         except sqlite3.DataError as err:

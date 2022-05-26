@@ -1,11 +1,11 @@
 import sqlite3
 
-class Turma():
+class Classroom():
     def __init__(self, code: str):
         self.code = code
 
     def __str__(self):
-        out_str = "Turma [code: {}]"
+        out_str = "Classroom [code: {}]"
         return out_str.format(self.code)
 
     def to_tuple(self):
@@ -13,32 +13,32 @@ class Turma():
 
     @staticmethod
     def from_tuple(code: str):
-        turma = Turma(code)
-        return turma
+        classroom = Classroom(code)
+        return classroom
 
 
-class TurmaRepository:
+class ClassroomRepository:
     def __init__(self, conn: sqlite3.Connection):
         self.__conn = conn
 
     def __del__(self):
         self.__conn.close()
 
-    def add_turma(self, turma: Turma):
+    def add_classroom(self, classroom: Classroom):
         try:
             sql = '''
-                INSERT INTO turma(code)
+                INSERT INTO classroom(code)
                 VALUES(?)
                 '''
 
             cur = self.__conn.cursor()
-            cur.execute(sql, turma.to_tuple())
+            cur.execute(sql, classroom.to_tuple())
             self.__conn.commit()
         except sqlite3.DatabaseError as err:
-            print('A turma digitada ja existe em nosso banco de dados!'.upper())
+            print('A classroom digitada ja existe em nosso banco de dados!'.upper())
             print('Error description: ', err)
 
-    def get_turma(self, code: str) -> None | Turma:
+    def get_classroom(self, code: str) -> None | Classroom:
         sql = f'''
             SELECT * FROM users
             WHERE code = ?
@@ -51,12 +51,12 @@ class TurmaRepository:
         if res == None:
             return None
         else:
-            return Turma.from_tuple(*res)
+            return Classroom.from_tuple(*res)
 
-    def remove_turma_by_code(self, code: str):
+    def remove_classroom_by_code(self, code: str):
         try: 
             sql = f'''
-                DELETE FROM turma
+                DELETE FROM classroom
                 WHERE code = ?
             '''
 
@@ -64,21 +64,21 @@ class TurmaRepository:
             cur.execute(sql, [code])
             
             if(cur.rowcount == 0):
-                print(f'Turma {code} nao existe')
+                print(f'Classroom {code} nao existe')
                 return
 
-            print(f'Turma {code} deletado com sucesso')
+            print(f'Classroom {code} deletado com sucesso')
             self.__conn.commit()
         except sqlite3.DataError as err:
             print(err.__traceback__)
     
-    def get_all(self) -> list[Turma]:
+    def get_all(self) -> list[Classroom]:
         cursor = self.__conn.cursor()
 
         cursor.execute('''
-        SELECT * FROM turma;  
+        SELECT * FROM classroom;  
         ''')
 
         result = cursor.fetchall()
-        return [Turma.from_tuple(*t) for t in result]
+        return [Classroom.from_tuple(*t) for t in result]
 

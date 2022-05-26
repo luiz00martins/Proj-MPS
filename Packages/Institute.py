@@ -33,7 +33,7 @@ class InsituteRepository:
             cur.execute(sql, institute.to_tuple())
             self.__conn.commit()
         except sqlite3.DatabaseError as err:
-            print('O institute digitado ja existe em nosso banco de dados!'.upper())
+            print('Institute already exists in the database!'.upper())
             print('Error description: ', err)
 
     def get_institute(self, name: str) -> None | Institute:
@@ -62,10 +62,10 @@ class InsituteRepository:
             cur.execute(sql, (name,))
             
             if(cur.rowcount == 0):
-                print(f'Institute {name} nao existe')
+                print(f'Institute {name} does not exist')
                 return
 
-            print(f'Institute {name} deletado com sucesso')
+            print(f'Institute {name} successfully deleted')
             self.__conn.commit()
         except sqlite3.DataError as err:
             print(err.__traceback__)

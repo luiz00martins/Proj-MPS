@@ -1,6 +1,6 @@
 from os import wait
 import sqlite3
-from Packages import Users, Institute, Turma
+from Packages import Users, Institute, Classroom
 from Packages.Date import Date
 from Packages.Treeset import TreeSet
 
@@ -109,15 +109,15 @@ with conn:
         institute_repo.remove_institute_by_name(i.name)
 
 
-    turma_repo = Turma.TurmaRepository(conn) 
+    classroom_repo = Classroom.ClassroomRepository(conn) 
 
-    turma_repo.add_turma(Turma.Turma("CS124"))
+    classroom_repo.add_classroom(Classroom.Classroom("CS124"))
 
-    for t in turma_repo.get_all():
+    for t in classroom_repo.get_all():
         print('\t', t)
 
-    for t in turma_repo.get_all():
-        turma_repo.remove_turma_by_code(t.code)
+    for t in classroom_repo.get_all():
+        classroom_repo.remove_classroom_by_code(t.code)
 
 
 # Testing dates and treeset.
