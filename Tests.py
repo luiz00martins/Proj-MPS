@@ -3,7 +3,7 @@ import sqlite3
 from Packages.Entities import Users, Institute, Classroom
 
 from Packages.Entities.Classroom import Classroom, ClassroomRepository
-from Packages.Entities.ClassroomUser import ClassroomUser, ClassroomUserRepository, Role
+from Packages.Entities.ClassroomUser import ClassroomUserRole, ClassroomUserRoleRepository, Role, create_classroom_user
 
 from Packages.DataStructures.Date import Date
 from Packages.DataStructures.Treeset import TreeSet
@@ -37,13 +37,13 @@ class UserComparer():
 def users_by_birthday_in_decreasing_order(users):
     return TreeSet([UserComparer(u) for u in users])
 
-conn = sqlite3.connect('user.db')
+conn = sqlite3.connect('test.db')
 with conn:
     init_db(conn)
 
     user_repo = Users.UserRepository(conn)
     classroom_repo = ClassroomRepository(conn) 
-    classroom_user_repo = ClassroomUserRepository(conn)
+    classroom_user_repo = ClassroomUserRoleRepository(conn)
 
     # Clearing for testing
 
@@ -58,10 +58,10 @@ with conn:
 
     # Tests
 
-    user1 = Users.User('student', 'addpasstest22', Date(1,5,2015))
-    user2 = Users.User('assistant', 'addpasstest22', Date(1,6,2010))
-    user3 = Users.User('teacher', 'addpasstest22', Date(30,10,1999))
-    user4 = Users.User('admin', 'addpasstest22', Date(5,7,2005))
+    user1 = Users.User('student_a', 'addpasstest22', Date(1,5,2015))
+    user2 = Users.User('assistant_a', 'addpasstest22', Date(1,6,2010))
+    user3 = Users.User('teacher_a', 'addpasstest22', Date(30,10,1999))
+    user4 = Users.User('admin_a', 'addpasstest22', Date(5,7,2005))
 
     userError0 = Users.User('add1testa', 'addpasstest22', Date(2,6,1995))
 
@@ -127,18 +127,19 @@ with conn:
         print('\t', t)
 
     for t in classroom_repo.get_all():
-        student = ClassroomUser(user1.id, t.code, Role.student)
-        assistant = ClassroomUser(user2.id, t.code, Role.assistant)
-        teacher = ClassroomUser(user3.id, t.code, Role.teacher)
-        adiministrator = ClassroomUser(user4.id, t.code, Role.administrator)
+        student = ClassroomUserRole(user1.id, t.code, Role.student)
+        assistant = ClassroomUserRole(user2.id, t.code, Role.assistant)
+        teacher = ClassroomUserRole(user3.id, t.code, Role.teacher)
+        administrator = ClassroomUserRole(user4.id, t.code, Role.administrator)
 
         classroom_user_repo.add_classroom_user(student)
         classroom_user_repo.add_classroom_user(assistant)
         classroom_user_repo.add_classroom_user(teacher)
-        classroom_user_repo.add_classroom_user(adiministrator)
+        classroom_user_repo.add_classroom_user(administrator)
 
-        for cu in classroom_user_repo.get_all():
-            print(f'User {cu.user_fk} is a {cu.role.name} in classroom {cu.classroom_fk}')
+        for k in [student, assistant, teacher, administrator]:
+            usr = create_classroom_user(k, conn)
+            usr.get_credentials()
 
         classroom_user_repo.add_classroom_user(student)
 
