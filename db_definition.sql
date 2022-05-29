@@ -20,6 +20,6 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(12) UNIQUE NOT NULL,
     password VARCHAR(20) NOT NULL,
     birthday VARCHAR(10) NOT NULL,
-    institute_fk INTEGER,
+    institute_fk VARCHAR(24),
     FOREIGN KEY(institute_fk) REFERENCES institute(id)
 );

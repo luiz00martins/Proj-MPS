@@ -1,19 +1,22 @@
-from os import wait
 import sqlite3
-from Packages.Entities import Users, Institute, Classroom
-
-from Packages.Entities.Classroom import Classroom, ClassroomRepository
-from Packages.Entities.ClassroomUser import ClassroomUserRole, ClassroomUserRoleRepository, Role, create_classroom_user
+import uuid
 
 from Packages.DataStructures.Date import Date
 from Packages.DataStructures.Treeset import TreeSet
+from Packages.Entities import Users, Institute
+from Packages.Entities.Classroom import Classroom, ClassroomRepository
+from Packages.Entities.ClassroomUser import ClassroomUserRole, ClassroomUserRoleRepository, Role, create_classroom_user
+from Packages.DataExport.JSONUserExporter import JSONUserExporter
+from Packages.DataExport.XMLUserExporter import XMLUserExporter
+
 
 def init_db(conn: sqlite3.Connection):
     with open('db_definition.sql', 'r') as f:
         contents = f.read()
         cur = conn.cursor()
         cur.executescript(contents)
-    
+
+
 class UserComparer():
     def __init__(self, user):
         self.user = user
@@ -23,26 +26,32 @@ class UserComparer():
 
     def __lt__(self, other):
         return self.user.birthday < other.user.birthday
+
     def __eq__(self, other):
         return self.user.birthday == other.user.birthday
+
     def __gt__(self, other):
         return self.user.birthday > other.user.birthday
+
     def __ne__(self, other):
         return self.user.birthday != other.user.birthday
+
     def __le__(self, other):
         return self.user.birthday <= other.user.birthday
+
     def __ge__(self, other):
         return self.user.birthday >= other.user.birthday
+
 
 def users_by_birthday_in_decreasing_order(users):
     return TreeSet([UserComparer(u) for u in users])
 
-conn = sqlite3.connect('test.db')
-with conn:
+
+with sqlite3.connect('test.db') as conn:
     init_db(conn)
 
     user_repo = Users.UserRepository(conn)
-    classroom_repo = ClassroomRepository(conn) 
+    classroom_repo = ClassroomRepository(conn)
     classroom_user_repo = ClassroomUserRoleRepository(conn)
 
     # Clearing for testing
@@ -58,12 +67,12 @@ with conn:
 
     # Tests
 
-    user1 = Users.User('student_a', 'addpasstest22', Date(1,5,2015))
-    user2 = Users.User('assistant_a', 'addpasstest22', Date(1,6,2010))
-    user3 = Users.User('teacher_a', 'addpasstest22', Date(30,10,1999))
-    user4 = Users.User('admin_a', 'addpasstest22', Date(5,7,2005))
+    user1 = Users.User('student_a', 'addpasstest22', Date(1, 5, 2015))
+    user2 = Users.User('assistant_a', 'addpasstest22', Date(1, 6, 2010))
+    user3 = Users.User('teacher_a', 'addpasstest22', Date(30, 10, 1999))
+    user4 = Users.User('admin_a', 'addpasstest22', Date(5, 7, 2005))
 
-    userError0 = Users.User('add1testa', 'addpasstest22', Date(2,6,1995))
+    userError0 = Users.User('add1testa', 'addpasstest22', Date(2, 6, 1995))
 
     validation = Users.UserDefaultValidation()
 
@@ -85,7 +94,7 @@ with conn:
     print('\t', user_repo.get_user_by_id(user2.id))
     print('\t', user_repo.get_user_by_username(user2.username))
 
-    print('Should be None: ', user_repo.get_user_by_username('ohno')) # Returns 'None'
+    print('Should be None: ', user_repo.get_user_by_username('ohno'))  # Returns 'None'
 
     try:
         user_repo.add_user(userError0, validation)
@@ -99,7 +108,7 @@ with conn:
     users = user_repo.get_all()
     for user in users:
         print('\t', user)
-    
+
     user_repo.remove_user_by_id(userError1.id)
 
     print('Print all: ')
@@ -119,7 +128,6 @@ with conn:
 
     for i in institute_repo.get_all():
         institute_repo.remove_institute_by_name(i.name)
-
 
     classroom_repo.add_classroom(Classroom("CS124"))
 
@@ -143,3 +151,33 @@ with conn:
 
         classroom_user_repo.add_classroom_user(student)
 
+    for user in user_repo.get_all():
+        user_repo.remove_user_by_id(user.id)
+
+    institutes = ['inst-1', 'inst-2', 'inst-3']
+
+    for i in institutes:
+        institute_repo.add_institute(Institute.Institute(i))
+
+    users_id = []
+
+    for i in range(100):
+        inst = institutes[i % 3]
+
+        user_name = ''.join([x for x in uuid.uuid4().__str__() if x.isalpha()])[0:11]
+
+        user = Users.User(user_name, 'addpasstest22', Date(1, 5, 2015), institute_name=inst)
+        user_id = user_repo.add_user(user, validation)
+        users_id.append(user_id)
+
+    exporter = JSONUserExporter(conn)
+    exporter.export_data('test_report.json')
+
+    exporter = XMLUserExporter(conn)
+    exporter.export_data('test_report.xml')
+
+    for user_id in users_id:
+        user_repo.remove_user_by_id(user_id)
+
+    for inst in institutes:
+        institute_repo.remove_institute_by_name(inst)

@@ -2,12 +2,13 @@ import sqlite3
 from abc import abstractmethod
 from enum import Enum, auto
 
-from .Users import User, UserRepository
-from .Classroom import Classroom, ClassroomRepository
+from .Users import User
 from ..DataStructures.Date import Date
+
 
 class DatabaseError(Exception):
     pass
+
 
 class Role(Enum):
     student = auto()
@@ -15,22 +16,22 @@ class Role(Enum):
     teacher = auto()
     administrator = auto()
 
+
 # FIXME: This is a horrible name.
-class ClassroomUserRole():
+class ClassroomUserRole:
     def __init__(self, user_fk: int, classroom_fk: str, role: Role):
         self.user_fk = user_fk
         self.classroom_fk = classroom_fk
         self.role = role
 
     def to_tuple(self):
-        return (self.user_fk, self.classroom_fk, self.role.name)
+        return self.user_fk, self.classroom_fk, self.role.name
 
     @staticmethod
     def from_tuple(user: int, classroom: str, role: Role):
         return ClassroomUserRole(user, classroom, role)
-        
 
-        
+
 class ClassroomUserRoleRepository:
     # TODO: Create the template pattern with this and the Classroom.py/User.py.
 
@@ -64,30 +65,30 @@ class ClassroomUserRoleRepository:
         cur.execute(sql, (user_fk, classroom_fk, role.name))
         res = cur.fetchone()
 
-        if res == None:
+        if res is None:
             return None
         else:
             return ClassroomUserRole.from_tuple(*res)
 
-    def remove_classroom_user(self, user_fk: int, classrooml_fk: str):
-        try: 
+    def remove_classroom_user(self, user_fk: int, classroom_fk: str):
+        try:
             sql = f'''
                 DELETE FROM classroom_user
                 WHERE user_fk = ? AND classroom_fk = ?
             '''
 
             cur = self.__conn.cursor()
-            cur.execute(sql, (user_fk, classrooml_fk))
-            
-            if(cur.rowcount == 0):
-                print(f'User {user_fk} is not in classroom {classrooml_fk}')
+            cur.execute(sql, (user_fk, classroom_fk))
+
+            if cur.rowcount == 0:
+                print(f'User {user_fk} is not in classroom {classroom_fk}')
                 return
 
-            print(f'User {user_fk} successfully deleted from classroom {classrooml_fk}')
+            print(f'User {user_fk} successfully deleted from classroom {classroom_fk}')
             self.__conn.commit()
         except sqlite3.DataError as err:
             print(err.__traceback__)
-    
+
     def get_all(self) -> list[ClassroomUserRole]:
         cursor = self.__conn.cursor()
 
@@ -98,7 +99,8 @@ class ClassroomUserRoleRepository:
 
         result = cursor.fetchall()
 
-        return [ClassroomUserRole.from_tuple(user_fk, classroom_fk, Role[role_name]) for user_fk, classroom_fk, role_name in result]
+        return [ClassroomUserRole.from_tuple(user_fk, classroom_fk, Role[role_name]) for
+                user_fk, classroom_fk, role_name in result]
 
 
 class ClassroomUser(User):
@@ -108,24 +110,38 @@ class ClassroomUser(User):
         self.role = role
 
     @abstractmethod
-    def get_credentials():
+    def get_credentials(self):
         pass
+
 
 class Student(ClassroomUser):
     def get_credentials(self):
-        print(f'I, {self.username}, am allowed to watch classes, participate in them, and see my statistics in the class in classroom {self.classroom_fk}.')
+        print(
+            f'I, {self.username}, am allowed to watch classes, participate in them, and see my statistics in the '
+            f'class in classroom {self.classroom_fk}.')
+
 
 class Assistant(ClassroomUser):
     def get_credentials(self):
-        print(f'I, {self.username}, am allowed to participate in classes, present them, and moderate them in classroom {self.classroom_fk}.')
+        print(
+            f'I, {self.username}, am allowed to participate in classes, present them, and moderate them in classroom '
+            f'{self.classroom_fk}.')
+
 
 class Teacher(ClassroomUser):
     def get_credentials(self):
-        print(f'I, {self.username}, am allowed to create classes, present them, and moderate them. Furthermore, I can access all of the student\'s statistics, and grade students in classroom {self.classroom_fk}.')
+        print(
+            f'I, {self.username}, am allowed to create classes, present them, and moderate them. Furthermore, '
+            f'I can access all of the student\'s statistics, and grade students in classroom {self.classroom_fk}.')
+
 
 class Administrator(ClassroomUser):
     def get_credentials(self):
-        print(f'I, {self.username}, am allowed to create classes, and moderate them in classroom {self.classroom_fk}. Furthermore, I can access all of the student\'s statistics, post messages to the classroom\'s board, and send alerts in the classroom\'s board')
+        print(
+            f'I, {self.username}, am allowed to create classes, and moderate them in classroom {self.classroom_fk}. '
+            f'Furthermore, I can access all of the student\'s statistics, post messages to the classroom\'s board, '
+            f'and send alerts in the classroom\'s board')
+
 
 def create_classroom_user(cls_usr_role: ClassroomUserRole, conn: sqlite3.Connection):
     sql = f'''
@@ -137,7 +153,7 @@ def create_classroom_user(cls_usr_role: ClassroomUserRole, conn: sqlite3.Connect
     cur.execute(sql, [cls_usr_role.user_fk])
     res = cur.fetchone()
 
-    if res == None:
+    if res is None:
         raise DatabaseError(f'User {cls_usr_role.user_fk} does not exist in the database')
 
     args = (res[0], res[1], res[2], cls_usr_role.classroom_fk, cls_usr_role.role)

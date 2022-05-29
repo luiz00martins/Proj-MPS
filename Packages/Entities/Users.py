@@ -2,23 +2,24 @@ import sqlite3
 from ..DataStructures.Date import Date
 
 class User():
-    def __init__(self, username: str, password: str, birthday: Date):
+    def __init__(self, username: str, password: str, birthday: Date, institute_name: str = None):
         self.username = username
         self.password = password
         self.birthday = birthday
         self.id = 0
-        self.__institute_fk = 0
+        self.institute_name = institute_name
 
     def __str__(self):
         return f"User [id: {self.id}; username: {self.username}; birthday: {self.birthday}; password: {self.password}]"
+
     def to_tuple(self):
-        return (self.username, self.password, str(self.birthday), self.__institute_fk)
+        return (self.username, self.password, str(self.birthday), self.institute_name)
 
     @staticmethod
     def from_tuple(id: int, username: str, password: str, birthday: Date, institute_fk: int):
         user = User(username, password, birthday)
         user.id = id
-        user.__institute_fk = institute_fk
+        user.institute_name = institute_fk
         return user
 
 class UserValidationException(Exception):
@@ -54,7 +55,7 @@ class UserRepository:
     # def __del__(self):
     #     self.__conn.close()
 
-    def add_user(self, user: User, validation):
+    def add_user(self, user: User, validation) -> int:
         # TODO: check if user already exists before trying to insert
         try:
             sql = '''
