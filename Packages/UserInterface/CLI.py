@@ -1,6 +1,6 @@
 import argparse
 import sqlite3
-from .Users import UserRepository, User, UserDefaultValidation, UserValidationException
+from ..Entities.Users import UserRepository, User, UserDefaultValidation, UserValidationException
 
 class UsersCLI():
     def __init__(self, conn: sqlite3.Connection):
