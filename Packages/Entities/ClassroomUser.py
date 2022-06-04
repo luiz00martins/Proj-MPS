@@ -143,7 +143,7 @@ class Administrator(ClassroomUser):
             f'and send alerts in the classroom\'s board')
 
 
-def create_classroom_user(cls_usr_role: ClassroomUserRole, conn: sqlite3.Connection):
+def create_classroom_user(cls_usr_role: ClassroomUserRole, conn: sqlite3.Connection) -> ClassroomUser:
     sql = f'''
         SELECT username, password, birthday FROM users
         WHERE id = ?
@@ -166,3 +166,5 @@ def create_classroom_user(cls_usr_role: ClassroomUserRole, conn: sqlite3.Connect
             return Teacher(*args)
         case 'administrator':
             return Administrator(*args)
+
+    raise ValueError(f'No role of type {cls_usr_role.role.name}')

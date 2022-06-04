@@ -8,6 +8,7 @@ from Packages.Entities.Classroom import Classroom, ClassroomRepository
 from Packages.Entities.ClassroomUser import ClassroomUserRole, ClassroomUserRoleRepository, Role, create_classroom_user
 from Packages.DataExport.JSONUserExporter import JSONUserExporter
 from Packages.DataExport.XMLUserExporter import XMLUserExporter
+from Packages.PdfAdapter import PdfAdapter
 
 
 def init_db(conn: sqlite3.Connection):
@@ -181,3 +182,7 @@ with sqlite3.connect('test.db') as conn:
 
     for inst in institutes:
         institute_repo.remove_institute_by_name(inst)
+
+
+    adapter = PdfAdapter(conn)
+    adapter.import_pdf('some/file.pdf')
