@@ -2,7 +2,8 @@ from Packages.UserInterface.CLI import UsersCLI
 from Packages.UserInterface.GUI import GUI
 import sqlite3
 
-GUI().run()
+with sqlite3.connect('test.db') as conn:
+    GUI(conn).run()
 
 # def init_db(conn: sqlite3.Connection):
 #     with open('db_definition.sql', 'r') as f:

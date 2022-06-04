@@ -1,14 +1,16 @@
 import argparse
 import sqlite3
 from ..Entities.Users import UserRepository, User, UserDefaultValidation, UserValidationException
+from ..DataStructures.Date import Date
+from .Commands import AddUserCommand, RemoveUserByUsernameCommand, GetAllUsersCommand 
 
 class UsersCLI():
     def __init__(self, conn: sqlite3.Connection):
-        self.users = UserRepository(conn)
+        self.__conn = conn
 
         self.parser = argparse.ArgumentParser(description='Manages users')
 
-        self.parser.add_argument('--add', nargs=2, help='Adds a new user')
+        self.parser.add_argument('--add', nargs=4, help='Adds a new user')
         self.parser.add_argument('--remove', nargs=1, help='Removes an existing user')
         self.parser.add_argument('--list', action='store_true', help='Prints all users')
 
@@ -21,11 +23,18 @@ class UsersCLI():
 
         username = add_args[0]
         password = add_args[1]
+        birthday = add_args[2]
+        institute = add_args[3]
 
-        user = User(username, password)
+        birthday = [int(v) for v in birthday.split('/')]
+        birthday = Date(birthday[0], birthday[1], birthday[2])
+        
+        user = User(username, password, birthday, institute)
+        validation = UserDefaultValidation()
 
         try:
-            self.users.add_user(user, UserDefaultValidation())
+            command = AddUserCommand(self.__conn, (user, validation))
+            command.execute()
         except UserValidationException as e:
             print("Falha ao adicionar usuario: " + e.reason)
 
@@ -38,10 +47,12 @@ class UsersCLI():
 
         username = add_args[0]
 
-        self.users.remove_user_by_username(username)
+        command = RemoveUserByUsernameCommand(self.__conn, (username,))
+        command.execute()
 
     def _list(self):
-        users_list = self.users.get_all()
+        command = GetAllUsersCommand(self.__conn, ())
+        users_list = command.execute()
 
         for usr in users_list:
             print(usr)
