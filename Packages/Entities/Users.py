@@ -1,6 +1,7 @@
 import sqlite3
 from ..DataStructures.Date import Date
 
+
 class User():
     def __init__(self, username: str, password: str, birthday: Date, institute_name: str = None):
         self.username = username
@@ -22,6 +23,7 @@ class User():
         user.institute_name = institute_fk
         return user
 
+
 class UserValidationException(Exception):
     def __init__(self, reason):
         self.reason = reason
@@ -30,7 +32,7 @@ class UserValidationException(Exception):
         return f"user validation failed, reason: {self.reason}"
 
 
-class UserDefaultValidation():
+class UserDefaultValidation:
 
     def validate(self, user: User):
         if len(user.username) == 0:
@@ -47,6 +49,10 @@ class UserDefaultValidation():
         if len([x for x in user.password if x.isdigit()]) < 2:
             raise UserValidationException('Password must have at least 2 numbers')
 
+
+class UserRepoException(Exception):
+    def __init__(self):
+        super().__init__(self)
 
 class UserRepository:
     def __init__(self, conn: sqlite3.Connection):
@@ -69,21 +75,22 @@ class UserRepository:
             self.__conn.commit()
             id = cur.lastrowid
             user.id = id
+            print(f'user with id:{id} added')
             return id
         except sqlite3.DatabaseError as err:
             print('Username already exists in the database'.upper())
             print('Error description: ', err)
+            raise UserRepoException
 
     def __get_user_helper(self, parameter, argument):
         sql = f'''
             SELECT * FROM users
             WHERE {parameter} = ?
         '''
-    
+
         cur = self.__conn.cursor()
         cur.execute(sql, [argument])
         res = cur.fetchone()
-
 
         if res == None:
             return None
@@ -97,7 +104,7 @@ class UserRepository:
         return self.__get_user_helper('username', username)
 
     def __remove_user_helper(self, parameter, argument):
-        try: 
+        try:
             sql = f'''
                 DELETE FROM users
                 WHERE {parameter} = ?
@@ -105,8 +112,8 @@ class UserRepository:
 
             cur = self.__conn.cursor()
             cur.execute(sql, [argument])
-            
-            if(cur.rowcount == 0):
+
+            if (cur.rowcount == 0):
                 print(f'User {argument} does not exist')
                 return
 
@@ -130,6 +137,3 @@ class UserRepository:
 
         result = cursor.fetchall()
         return [User.from_tuple(*t) for t in result]
-
-
-
