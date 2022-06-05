@@ -14,9 +14,19 @@ class GUI:
         self.__prev_commands = []
         self.command_history = sg.Listbox([], size=(35, 8))
 
-    def update_command_history(self, command):
-        self.__prev_commands += [command]
-        self.command_history.update([cm.get_name() for cm in self.__prev_commands])
+    def execute_command(self, command):
+        try:
+            command.execute()
+            self.__prev_commands += [command]
+            self.command_history.update([cm.get_name() for cm in self.__prev_commands])
+        except CommandException:
+            print('onho')
+
+    def pop_command(self):
+        if len(self.__prev_commands) > 0:
+            last_command = self.__prev_commands.pop()
+            last_command.undo()
+            self.command_history.update([cm.get_name() for cm in self.__prev_commands])
 
     def run(self):
 
@@ -47,10 +57,7 @@ class GUI:
             elif event == 'Remove user from username':
                 validation = UserDefaultValidation()
                 command = RemoveUserByUsernameCommand(self.__conn, values['in_username'], validation)
-
-                command.execute()
-
-                self.update_command_history(command)
+                self.execute_command(command)
 
             elif event == 'Add user':
                 user = User(values['in_username'], values['in_password'],
@@ -59,12 +66,7 @@ class GUI:
                 validation = UserDefaultValidation()
 
                 command = AddUserCommand(self.__conn, user, validation)
-
-                try:
-                    command.execute()
-                    self.update_command_history(command)
-                except CommandException:
-                    print('onho')
+                self.execute_command(command)
 
                 # Output a message to the window
                 # window['err_username'].update(values['in_username'])
@@ -73,10 +75,7 @@ class GUI:
                 # window['err_institute'].update(values['in_institute'])
 
             elif event == 'Undo':
-                if len(self.__prev_commands) > 0:
-                    last_command = self.__prev_commands.pop()
-                    last_command.undo()
-                    self.command_history.update([cm.get_name() for cm in self.__prev_commands])
+                self.pop_command()
 
         # Finish up by removing from the screen
         window.close()
