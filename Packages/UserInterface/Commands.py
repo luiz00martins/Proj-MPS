@@ -1,7 +1,7 @@
 import sqlite3
 from abc import abstractmethod
 
-from ..Entities.Users import User, UserDefaultValidation, UserRepository, UserRepoException
+from ..Entities.Users import User, UserDefaultValidation, UserRepository, UserRepoException, UserValidationException
 
 
 class CommandException(Exception):
@@ -33,12 +33,12 @@ class AddUserCommand(Command):
         self.__validation = validation
 
     def undo(self):
-        self.repo.remove_user_by_id(self.__user.id)
+        self.repo.remove_user_by_username(self.__user.username)
 
     def execute(self):
         try:
             self.repo.add_user(self.__user, self.__validation)
-        except UserRepoException:
+        except (UserRepoException, UserValidationException):
             raise CommandException
 
     def get_name(self) -> str:
@@ -57,6 +57,9 @@ class RemoveUserByUsernameCommand(Command):
 
     def execute(self):
         self.__user = self.repo.get_user_by_username(self.__username)
+        if self.__user is None:
+            raise CommandException
+
         self.repo.remove_user_by_username(self.__user.username)
 
     def get_name(self) -> str:

@@ -113,7 +113,7 @@ class UserRepository:
             cur = self.__conn.cursor()
             cur.execute(sql, [argument])
 
-            if (cur.rowcount == 0):
+            if cur.rowcount == 0:
                 print(f'User {argument} does not exist')
                 return
 
