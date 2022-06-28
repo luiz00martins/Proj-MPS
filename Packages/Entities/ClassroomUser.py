@@ -113,12 +113,19 @@ class ClassroomUser(User):
     def get_credentials(self):
         pass
 
+    @abstractmethod
+    def clone(self):
+        pass
+
 
 class Student(ClassroomUser):
     def get_credentials(self):
         print(
             f'I, {self.username}, am allowed to watch classes, participate in them, and see my statistics in the '
             f'class in classroom {self.classroom_fk}.')
+
+    def clone(self):
+        return Student(self.username, self.password, self.birthday, self.classroom_fk, self.role)
 
 
 class Assistant(ClassroomUser):
@@ -127,12 +134,18 @@ class Assistant(ClassroomUser):
             f'I, {self.username}, am allowed to participate in classes, present them, and moderate them in classroom '
             f'{self.classroom_fk}.')
 
+    def clone(self):
+        return Student(self.username, self.password, self.birthday, self.classroom_fk, self.role)
+
 
 class Teacher(ClassroomUser):
     def get_credentials(self):
         print(
             f'I, {self.username}, am allowed to create classes, present them, and moderate them. Furthermore, '
             f'I can access all of the student\'s statistics, and grade students in classroom {self.classroom_fk}.')
+
+    def clone(self):
+        return Student(self.username, self.password, self.birthday, self.classroom_fk, self.role)
 
 
 class Administrator(ClassroomUser):
@@ -141,6 +154,9 @@ class Administrator(ClassroomUser):
             f'I, {self.username}, am allowed to create classes, and moderate them in classroom {self.classroom_fk}. '
             f'Furthermore, I can access all of the student\'s statistics, post messages to the classroom\'s board, '
             f'and send alerts in the classroom\'s board')
+
+    def clone(self):
+        return Student(self.username, self.password, self.birthday, self.classroom_fk, self.role)
 
 
 def create_classroom_user(cls_usr_role: ClassroomUserRole, conn: sqlite3.Connection) -> ClassroomUser:
